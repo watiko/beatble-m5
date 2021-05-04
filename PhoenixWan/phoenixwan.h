@@ -23,7 +23,7 @@ enum Button {
 };
 }
 
-union PhoenixWanButtons1 {
+union PhoenixWanButtons {
   struct {
     uint8_t b1 : 1;
     uint8_t b2 : 1;
@@ -36,7 +36,7 @@ union PhoenixWanButtons1 {
   uint8_t value : 8;
 } __attribute__((packed));
 
-union PhoenixWanButtons2 {
+union PhoenixWanOptionButtons {
   struct {
     uint8_t e1 : 1;
     uint8_t e2 : 1;
@@ -48,8 +48,8 @@ union PhoenixWanButtons2 {
 
 struct PhoenixWanState {
   uint8_t scratch;
-  PhoenixWanButtons1 btn1;
-  PhoenixWanButtons2 btn2;
+  PhoenixWanButtons buttons;
+  PhoenixWanOptionButtons optionButtons;
 };
 
 class PhoenixWanParser {
