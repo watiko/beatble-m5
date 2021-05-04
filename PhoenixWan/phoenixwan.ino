@@ -1,12 +1,36 @@
-#include "phoenixwan.h"
-
+#include <M5Stack.h>
 #include <SPI.h>
+
+#include "phoenixwan.h"
 
 USB Usb;
 PhoenixWanUSB PhoenixWan(&Usb);
 
+void updateScratch(bool changed) {
+  M5.Lcd.fillCircle(80, 120, 70, changed ? TFT_WHITE : TFT_BLACK);
+}
+
+void updateOptionButtons(bool e1, bool e2, bool e3, bool e4) {
+  M5.Lcd.fillRoundRect(160, 45, 29, 29, 2, e1 ? TFT_RED : TFT_WHITE);
+  M5.Lcd.fillRoundRect(201, 45, 29, 29, 2, e2 ? TFT_RED : TFT_WHITE);
+  M5.Lcd.fillRoundRect(242, 45, 29, 29, 2, e3 ? TFT_RED : TFT_WHITE);
+  M5.Lcd.fillRoundRect(283, 45, 29, 29, 2, e4 ? TFT_RED : TFT_WHITE);
+}
+
+void updateButtons(bool b1, bool b2, bool b3, bool b4, bool b5, bool b6,
+                   bool b7) {
+  M5.Lcd.fillRoundRect(160, 150, 29, 46, 2, b1 ? TFT_BLUE : TFT_WHITE);
+  M5.Lcd.fillRoundRect(181, 94, 29, 46, 2, b2 ? TFT_BLUE : TFT_BLACK);
+  M5.Lcd.fillRoundRect(201, 150, 29, 46, 2, b3 ? TFT_BLUE : TFT_WHITE);
+  M5.Lcd.fillRoundRect(222, 94, 29, 46, 2, b4 ? TFT_BLUE : TFT_BLACK);
+  M5.Lcd.fillRoundRect(242, 150, 29, 46, 2, b5 ? TFT_BLUE : TFT_WHITE);
+  M5.Lcd.fillRoundRect(263, 94, 29, 46, 2, b6 ? TFT_BLUE : TFT_BLACK);
+  M5.Lcd.fillRoundRect(283, 150, 29, 46, 2, b7 ? TFT_BLUE : TFT_WHITE);
+}
+
 void setup() {
-  Serial.begin(115200);
+  M5.begin();
+  // Serial.begin(115200);
 
 #if !defined(__MIPSEL__)
   while (!Serial)
@@ -20,18 +44,37 @@ void setup() {
       ; // Halt
   }
 
-  Serial.println("Started");
+  M5.Lcd.fillScreen(TFT_DARKGREY);
+
+  updateScratch(false);
+  updateOptionButtons(false, false, false, false);
+  updateButtons(false, false, false, false, false, false, false);
 }
+
+static uint8_t previousScratch = 0;
 
 void loop() {
   Usb.Task();
 
   if (PhoenixWan.connected()) {
-    if (PhoenixWan.getButtonPress(PButton::B_3)) {
-      Serial.println("B3");
+    if (previousScratch != PhoenixWan.getScratch()) {
+      previousScratch = PhoenixWan.getScratch();
+      updateScratch(true);
+    } else {
+      updateScratch(false);
     }
-    if (PhoenixWan.getButtonPress(PButton::E_1)) {
-      Serial.println("E1");
-    }
+
+    updateOptionButtons(PhoenixWan.getButtonPress(PButton::E_1),
+                        PhoenixWan.getButtonPress(PButton::E_2),
+                        PhoenixWan.getButtonPress(PButton::E_3),
+                        PhoenixWan.getButtonPress(PButton::E_4));
+
+    updateButtons(PhoenixWan.getButtonPress(PButton::B_1),
+                  PhoenixWan.getButtonPress(PButton::B_2),
+                  PhoenixWan.getButtonPress(PButton::B_3),
+                  PhoenixWan.getButtonPress(PButton::B_4),
+                  PhoenixWan.getButtonPress(PButton::B_5),
+                  PhoenixWan.getButtonPress(PButton::B_6),
+                  PhoenixWan.getButtonPress(PButton::B_7));
   }
 }
