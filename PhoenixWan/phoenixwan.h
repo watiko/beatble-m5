@@ -58,6 +58,8 @@ public:
 
   bool getButtonPress(PButton::Button button);
   uint8_t getScratch();
+  uint8_t getButtonValue();
+  uint8_t getOptionButtonValue();
 
 protected:
   void Parse(uint8_t len, uint8_t *buf);

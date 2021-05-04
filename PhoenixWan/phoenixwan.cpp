@@ -31,6 +31,12 @@ bool PhoenixWanParser::getButtonPress(PButton::Button button) {
 
 uint8_t PhoenixWanParser::getScratch() { return this->state.scratch; }
 
+uint8_t PhoenixWanParser::getButtonValue() { return this->state.buttons.value; }
+
+uint8_t PhoenixWanParser::getOptionButtonValue() {
+  return this->state.optionButtons.value;
+}
+
 void PhoenixWanParser::Parse(uint8_t len, uint8_t *buf) {
   if (len < 0 || !buf)
     return;
