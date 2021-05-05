@@ -1,10 +1,12 @@
 #include <M5Stack.h>
 #include <SPI.h>
 
+#include "ble.h"
 #include "phoenixwan.h"
 
 USB Usb;
 PhoenixWanUSB PhoenixWan(&Usb);
+BeatbleBLEServer *BleServer;
 
 void updateScratch(bool changed) {
   M5.Lcd.fillCircle(80, 120, 70, changed ? TFT_WHITE : TFT_BLACK);
@@ -49,9 +51,13 @@ void setup() {
   updateScratch(false);
   updateOptionButtons(false, false, false, false);
   updateButtons(false, false, false, false, false, false, false);
+
+  BleServer = BeatbleBLEServer::crateServer();
+  Serial.println("start advertising");
 }
 
 static uint8_t previousScratch = 0;
+static bool previousDeviceConnected = false;
 
 void loop() {
   Usb.Task();
@@ -76,5 +82,26 @@ void loop() {
                   PhoenixWan.getButtonPress(PButton::B_5),
                   PhoenixWan.getButtonPress(PButton::B_6),
                   PhoenixWan.getButtonPress(PButton::B_7));
+  }
+
+  if (BleServer->isConnected()) {
+    BleServer->notifyState(PhoenixWan.getScratch(), PhoenixWan.getButtonValue(),
+                           PhoenixWan.getOptionButtonValue());
+    delay(3);
+  }
+
+  // disconnecting
+  if (!BleServer->isConnected() && previousDeviceConnected) {
+    Serial.println("ble: disconnecting");
+    delay(500); // wait for bluetooth stack
+    BleServer->startAdvertising();
+    Serial.println("start advertising");
+    previousDeviceConnected = false;
+  }
+
+  // connecting
+  if (BleServer->isConnected() && !previousDeviceConnected) {
+    Serial.println("ble: connecting");
+    previousDeviceConnected = true;
   }
 }
