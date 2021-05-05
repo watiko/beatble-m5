@@ -7,8 +7,7 @@
 #define PHOENIX_WAN_VID 0x1CCF
 #define PHOENIX_WAN_PID 0x8048
 
-namespace PButton {
-enum Button {
+enum class PButton {
   B_1,
   B_2,
   B_3,
@@ -21,7 +20,6 @@ enum Button {
   E_3,
   E_4,
 };
-}
 
 union PhoenixWanButtons {
   struct {
@@ -56,7 +54,7 @@ class PhoenixWanParser {
 public:
   PhoenixWanParser(){};
 
-  bool getButtonPress(PButton::Button button);
+  bool getButtonPress(PButton button);
   uint8_t getScratch();
   uint8_t getButtonValue();
   uint8_t getOptionButtonValue();

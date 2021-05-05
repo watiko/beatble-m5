@@ -1,6 +1,6 @@
 #include "phoenixwan.h"
 
-bool PhoenixWanParser::getButtonPress(PButton::Button button) {
+bool PhoenixWanParser::getButtonPress(PButton button) {
   switch (button) {
   case PButton::B_1:
     return this->state.buttons.b1 == 1;
