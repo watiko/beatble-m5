@@ -1,5 +1,4 @@
 #include <M5Stack.h>
-#include <SPI.h>
 #include <cmath>
 
 #include "ble.h"
