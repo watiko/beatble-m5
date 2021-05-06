@@ -1,9 +1,9 @@
 #include <M5Stack.h>
 #include <SPI.h>
+#include <cmath>
 
 #include "ble.h"
 #include "phoenixwan.h"
-#include <cmath>
 
 USB Usb;
 PhoenixWanUSB PhoenixWan(&Usb);
@@ -69,9 +69,7 @@ void setup() {
 static uint8_t previousScratch = 0;
 static bool previousDeviceConnected = false;
 
-void loop() {
-  Usb.Task();
-
+void updateDisplay() {
   // USB State
   M5.Lcd.setCursor(10, 10);
   M5.Lcd.setTextSize(2);
@@ -82,29 +80,7 @@ void loop() {
   }
   M5.Lcd.print("PhoenixWan Connected");
 
-  if (PhoenixWan.connected()) {
-
-    if (previousScratch != PhoenixWan.getScratch()) {
-      previousScratch = PhoenixWan.getScratch();
-    }
-    updateScratch(false);
-    drawAngleLine(PhoenixWan.getScratch());
-
-    updateOptionButtons(PhoenixWan.getButtonPress(PButton::E_1),
-                        PhoenixWan.getButtonPress(PButton::E_2),
-                        PhoenixWan.getButtonPress(PButton::E_3),
-                        PhoenixWan.getButtonPress(PButton::E_4));
-
-    updateButtons(PhoenixWan.getButtonPress(PButton::B_1),
-                  PhoenixWan.getButtonPress(PButton::B_2),
-                  PhoenixWan.getButtonPress(PButton::B_3),
-                  PhoenixWan.getButtonPress(PButton::B_4),
-                  PhoenixWan.getButtonPress(PButton::B_5),
-                  PhoenixWan.getButtonPress(PButton::B_6),
-                  PhoenixWan.getButtonPress(PButton::B_7));
-  }
-
-  // Show BLE State
+  // BLE State
   M5.Lcd.setCursor(10, 210);
   M5.Lcd.setTextSize(2);
   if (BleServer->isConnected()) {
@@ -113,6 +89,42 @@ void loop() {
     M5.Lcd.setTextColor(DARKGREY);
   }
   M5.Lcd.print("BLE Connected");
+
+  // scratch
+  updateScratch(false);
+  drawAngleLine(PhoenixWan.getScratch());
+
+  updateOptionButtons(PhoenixWan.getButtonPress(PButton::E_1),
+                      PhoenixWan.getButtonPress(PButton::E_2),
+                      PhoenixWan.getButtonPress(PButton::E_3),
+                      PhoenixWan.getButtonPress(PButton::E_4));
+
+  updateButtons(PhoenixWan.getButtonPress(PButton::B_1),
+                PhoenixWan.getButtonPress(PButton::B_2),
+                PhoenixWan.getButtonPress(PButton::B_3),
+                PhoenixWan.getButtonPress(PButton::B_4),
+                PhoenixWan.getButtonPress(PButton::B_5),
+                PhoenixWan.getButtonPress(PButton::B_6),
+                PhoenixWan.getButtonPress(PButton::B_7));
+}
+
+static auto lastMillis = millis();
+
+void loop() {
+  Usb.Task();
+
+  auto currentMillis = millis();
+
+  if (currentMillis - lastMillis >= 1000 / 60) {
+    lastMillis = currentMillis;
+    updateDisplay();
+  }
+
+  if (PhoenixWan.connected()) {
+    if (previousScratch != PhoenixWan.getScratch()) {
+      previousScratch = PhoenixWan.getScratch();
+    }
+  }
 
   if (BleServer->isConnected()) {
     BleServer->notifyState(PhoenixWan.getScratch(), PhoenixWan.getButtonValue(),
