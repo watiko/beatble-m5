@@ -3,6 +3,7 @@
 
 #include "ble.h"
 #include "phoenixwan.h"
+#include <cmath>
 
 USB Usb;
 PhoenixWanUSB PhoenixWan(&Usb);
@@ -10,6 +11,15 @@ BeatbleBLEServer *BleServer;
 
 void updateScratch(bool changed) {
   M5.Lcd.fillCircle(80, 120, 70, changed ? TFT_WHITE : TFT_BLACK);
+}
+
+void drawAngleLine(uint8_t angle) {
+  double theta = (M_PI / 128) * angle;
+  auto r = 70;
+  auto dx = (int32_t)(r * std::cos(theta));
+  auto dy = (int32_t)(-r * std::sin(theta));
+
+  M5.Lcd.drawLine(80, 120, 80 + dx, 120 + dy, RED);
 }
 
 void updateOptionButtons(bool e1, bool e2, bool e3, bool e4) {
@@ -62,13 +72,23 @@ static bool previousDeviceConnected = false;
 void loop() {
   Usb.Task();
 
+  // USB State
+  M5.Lcd.setCursor(10, 10);
+  M5.Lcd.setTextSize(2);
   if (PhoenixWan.connected()) {
+    M5.Lcd.setTextColor(RED);
+  } else {
+    M5.Lcd.setTextColor(DARKGREY);
+  }
+  M5.Lcd.print("PhoenixWan Connected");
+
+  if (PhoenixWan.connected()) {
+
     if (previousScratch != PhoenixWan.getScratch()) {
       previousScratch = PhoenixWan.getScratch();
-      updateScratch(true);
-    } else {
-      updateScratch(false);
     }
+    updateScratch(false);
+    drawAngleLine(PhoenixWan.getScratch());
 
     updateOptionButtons(PhoenixWan.getButtonPress(PButton::E_1),
                         PhoenixWan.getButtonPress(PButton::E_2),
@@ -83,6 +103,16 @@ void loop() {
                   PhoenixWan.getButtonPress(PButton::B_6),
                   PhoenixWan.getButtonPress(PButton::B_7));
   }
+
+  // Show BLE State
+  M5.Lcd.setCursor(10, 210);
+  M5.Lcd.setTextSize(2);
+  if (BleServer->isConnected()) {
+    M5.Lcd.setTextColor(RED);
+  } else {
+    M5.Lcd.setTextColor(DARKGREY);
+  }
+  M5.Lcd.print("BLE Connected");
 
   if (BleServer->isConnected()) {
     BleServer->notifyState(PhoenixWan.getScratch(), PhoenixWan.getButtonValue(),
