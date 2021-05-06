@@ -8,9 +8,22 @@ USB Usb;
 PhoenixWanUSB PhoenixWan(&Usb);
 BeatbleBLEServer *BleServer;
 
-void updateScratch(bool changed) {
-  M5.Lcd.fillCircle(80, 120, 70, changed ? TFT_WHITE : TFT_BLACK);
-}
+namespace {
+namespace color {
+const uint32_t background = TFT_DARKGREY;
+const uint32_t scratch = TFT_BLACK;
+const uint32_t scratchAngle = RED;
+const uint32_t frontButton = TFT_WHITE;
+const uint32_t frontButtonPressed = TFT_BLUE;
+const uint32_t backButton = TFT_BLACK;
+const uint32_t backButtonPressed = TFT_BLUE;
+const uint32_t optionButton = TFT_WHITE;
+const uint32_t optionButtonPressed = TFT_RED;
+const uint32_t text = TFT_RED;
+} // namespace color
+} // namespace
+
+void updateScratch() { M5.Lcd.fillCircle(80, 120, 70, color::scratch); }
 
 void drawAngleLine(uint8_t angle) {
   double theta = (M_PI / 128) * angle;
@@ -18,25 +31,33 @@ void drawAngleLine(uint8_t angle) {
   auto dx = (int32_t)(r * std::cos(theta));
   auto dy = (int32_t)(-r * std::sin(theta));
 
-  M5.Lcd.drawLine(80, 120, 80 + dx, 120 + dy, RED);
+  M5.Lcd.drawLine(80, 120, 80 + dx, 120 + dy, color::scratchAngle);
 }
 
 void updateOptionButtons(bool e1, bool e2, bool e3, bool e4) {
-  M5.Lcd.fillRoundRect(160, 45, 29, 29, 2, e1 ? TFT_RED : TFT_WHITE);
-  M5.Lcd.fillRoundRect(201, 45, 29, 29, 2, e2 ? TFT_RED : TFT_WHITE);
-  M5.Lcd.fillRoundRect(242, 45, 29, 29, 2, e3 ? TFT_RED : TFT_WHITE);
-  M5.Lcd.fillRoundRect(283, 45, 29, 29, 2, e4 ? TFT_RED : TFT_WHITE);
+  auto option = color::optionButton;
+  auto pressed = color::optionButtonPressed;
+
+  M5.Lcd.fillRoundRect(160, 45, 29, 29, 2, e1 ? pressed : option);
+  M5.Lcd.fillRoundRect(201, 45, 29, 29, 2, e2 ? pressed : option);
+  M5.Lcd.fillRoundRect(242, 45, 29, 29, 2, e3 ? pressed : option);
+  M5.Lcd.fillRoundRect(283, 45, 29, 29, 2, e4 ? pressed : option);
 }
 
 void updateButtons(bool b1, bool b2, bool b3, bool b4, bool b5, bool b6,
                    bool b7) {
-  M5.Lcd.fillRoundRect(160, 150, 29, 46, 2, b1 ? TFT_BLUE : TFT_WHITE);
-  M5.Lcd.fillRoundRect(181, 94, 29, 46, 2, b2 ? TFT_BLUE : TFT_BLACK);
-  M5.Lcd.fillRoundRect(201, 150, 29, 46, 2, b3 ? TFT_BLUE : TFT_WHITE);
-  M5.Lcd.fillRoundRect(222, 94, 29, 46, 2, b4 ? TFT_BLUE : TFT_BLACK);
-  M5.Lcd.fillRoundRect(242, 150, 29, 46, 2, b5 ? TFT_BLUE : TFT_WHITE);
-  M5.Lcd.fillRoundRect(263, 94, 29, 46, 2, b6 ? TFT_BLUE : TFT_BLACK);
-  M5.Lcd.fillRoundRect(283, 150, 29, 46, 2, b7 ? TFT_BLUE : TFT_WHITE);
+  auto front = color::frontButton;
+  auto frontPressed = color::frontButtonPressed;
+  auto back = color::backButton;
+  auto backPressed = color::backButtonPressed;
+
+  M5.Lcd.fillRoundRect(160, 150, 29, 46, 2, b1 ? frontPressed : front);
+  M5.Lcd.fillRoundRect(201, 150, 29, 46, 2, b3 ? frontPressed : front);
+  M5.Lcd.fillRoundRect(242, 150, 29, 46, 2, b5 ? frontPressed : front);
+  M5.Lcd.fillRoundRect(283, 150, 29, 46, 2, b7 ? frontPressed : front);
+  M5.Lcd.fillRoundRect(181, 94, 29, 46, 2, b2 ? backPressed : back);
+  M5.Lcd.fillRoundRect(222, 94, 29, 46, 2, b4 ? backPressed : back);
+  M5.Lcd.fillRoundRect(263, 94, 29, 46, 2, b6 ? backPressed : back);
 }
 
 void setup() {
@@ -55,9 +76,9 @@ void setup() {
       ; // Halt
   }
 
-  M5.Lcd.fillScreen(TFT_DARKGREY);
+  M5.Lcd.fillScreen(color::background);
 
-  updateScratch(false);
+  updateScratch();
   updateOptionButtons(false, false, false, false);
   updateButtons(false, false, false, false, false, false, false);
 
@@ -74,9 +95,9 @@ void updateDisplay() {
   M5.Lcd.setCursor(10, 10);
   M5.Lcd.setTextSize(2);
   if (PhoenixWan.connected()) {
-    M5.Lcd.setTextColor(RED);
+    M5.Lcd.setTextColor(color::text);
   } else {
-    M5.Lcd.setTextColor(DARKGREY);
+    M5.Lcd.setTextColor(color::background);
   }
   M5.Lcd.print("PhoenixWan Connected");
 
@@ -84,16 +105,16 @@ void updateDisplay() {
   M5.Lcd.setCursor(10, 210);
   M5.Lcd.setTextSize(2);
   if (BleServer->isConnected()) {
-    M5.Lcd.setTextColor(RED);
+    M5.Lcd.setTextColor(color::text);
   } else {
-    M5.Lcd.setTextColor(DARKGREY);
+    M5.Lcd.setTextColor(color::background);
   }
   M5.Lcd.print("BLE Connected");
 
   // scratch
   if (previousScratch != PhoenixWan.getScratch()) {
     previousScratch = PhoenixWan.getScratch();
-    updateScratch(false);
+    updateScratch();
     drawAngleLine(PhoenixWan.getScratch());
   }
 
