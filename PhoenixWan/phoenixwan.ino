@@ -67,7 +67,8 @@ void setup() {
 }
 
 static uint8_t previousScratch = 0;
-static bool previousDeviceConnected = false;
+static uint8_t previousButton = 0;
+static uint8_t previousOptionButton = 0;
 
 void updateDisplay() {
   // USB State
@@ -91,24 +92,34 @@ void updateDisplay() {
   M5.Lcd.print("BLE Connected");
 
   // scratch
-  updateScratch(false);
-  drawAngleLine(PhoenixWan.getScratch());
+  if (previousScratch != PhoenixWan.getScratch()) {
+    previousScratch = PhoenixWan.getScratch();
+    updateScratch(false);
+    drawAngleLine(PhoenixWan.getScratch());
+  }
 
-  updateOptionButtons(PhoenixWan.getButtonPress(PButton::E_1),
-                      PhoenixWan.getButtonPress(PButton::E_2),
-                      PhoenixWan.getButtonPress(PButton::E_3),
-                      PhoenixWan.getButtonPress(PButton::E_4));
+  if (previousOptionButton != PhoenixWan.getOptionButtonValue()) {
+    previousOptionButton = PhoenixWan.getOptionButtonValue();
+    updateOptionButtons(PhoenixWan.getButtonPress(PButton::E_1),
+                        PhoenixWan.getButtonPress(PButton::E_2),
+                        PhoenixWan.getButtonPress(PButton::E_3),
+                        PhoenixWan.getButtonPress(PButton::E_4));
+  }
 
-  updateButtons(PhoenixWan.getButtonPress(PButton::B_1),
-                PhoenixWan.getButtonPress(PButton::B_2),
-                PhoenixWan.getButtonPress(PButton::B_3),
-                PhoenixWan.getButtonPress(PButton::B_4),
-                PhoenixWan.getButtonPress(PButton::B_5),
-                PhoenixWan.getButtonPress(PButton::B_6),
-                PhoenixWan.getButtonPress(PButton::B_7));
+  if (previousButton != PhoenixWan.getButtonValue()) {
+    previousButton = PhoenixWan.getButtonValue();
+    updateButtons(PhoenixWan.getButtonPress(PButton::B_1),
+                  PhoenixWan.getButtonPress(PButton::B_2),
+                  PhoenixWan.getButtonPress(PButton::B_3),
+                  PhoenixWan.getButtonPress(PButton::B_4),
+                  PhoenixWan.getButtonPress(PButton::B_5),
+                  PhoenixWan.getButtonPress(PButton::B_6),
+                  PhoenixWan.getButtonPress(PButton::B_7));
+  }
 }
 
 static auto lastMillis = millis();
+static bool previousDeviceConnected = false;
 
 void loop() {
   Usb.Task();
@@ -118,12 +129,6 @@ void loop() {
   if (currentMillis - lastMillis >= 1000 / 60) {
     lastMillis = currentMillis;
     updateDisplay();
-  }
-
-  if (PhoenixWan.connected()) {
-    if (previousScratch != PhoenixWan.getScratch()) {
-      previousScratch = PhoenixWan.getScratch();
-    }
   }
 
   if (BleServer->isConnected()) {
