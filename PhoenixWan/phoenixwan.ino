@@ -38,10 +38,13 @@ void updateOptionButtons(bool e1, bool e2, bool e3, bool e4) {
   auto option = color::optionButton;
   auto pressed = color::optionButtonPressed;
 
-  M5.Lcd.fillRoundRect(160, 45, 29, 29, 2, e1 ? pressed : option);
-  M5.Lcd.fillRoundRect(201, 45, 29, 29, 2, e2 ? pressed : option);
-  M5.Lcd.fillRoundRect(242, 45, 29, 29, 2, e3 ? pressed : option);
-  M5.Lcd.fillRoundRect(283, 45, 29, 29, 2, e4 ? pressed : option);
+  auto w = 29;
+  auto r = 2;
+
+  M5.Lcd.fillRoundRect(160, 45, w, w, r, e1 ? pressed : option);
+  M5.Lcd.fillRoundRect(201, 45, w, w, r, e2 ? pressed : option);
+  M5.Lcd.fillRoundRect(242, 45, w, w, r, e3 ? pressed : option);
+  M5.Lcd.fillRoundRect(283, 45, w, w, r, e4 ? pressed : option);
 }
 
 void updateButtons(bool b1, bool b2, bool b3, bool b4, bool b5, bool b6,
@@ -51,13 +54,17 @@ void updateButtons(bool b1, bool b2, bool b3, bool b4, bool b5, bool b6,
   auto back = color::backButton;
   auto backPressed = color::backButtonPressed;
 
-  M5.Lcd.fillRoundRect(160, 150, 29, 46, 2, b1 ? frontPressed : front);
-  M5.Lcd.fillRoundRect(201, 150, 29, 46, 2, b3 ? frontPressed : front);
-  M5.Lcd.fillRoundRect(242, 150, 29, 46, 2, b5 ? frontPressed : front);
-  M5.Lcd.fillRoundRect(283, 150, 29, 46, 2, b7 ? frontPressed : front);
-  M5.Lcd.fillRoundRect(181, 94, 29, 46, 2, b2 ? backPressed : back);
-  M5.Lcd.fillRoundRect(222, 94, 29, 46, 2, b4 ? backPressed : back);
-  M5.Lcd.fillRoundRect(263, 94, 29, 46, 2, b6 ? backPressed : back);
+  auto w = 29;
+  auto h = 46;
+  auto r = 2;
+
+  M5.Lcd.fillRoundRect(160, 150, w, h, r, b1 ? frontPressed : front);
+  M5.Lcd.fillRoundRect(201, 150, w, h, r, b3 ? frontPressed : front);
+  M5.Lcd.fillRoundRect(242, 150, w, h, r, b5 ? frontPressed : front);
+  M5.Lcd.fillRoundRect(283, 150, w, h, r, b7 ? frontPressed : front);
+  M5.Lcd.fillRoundRect(181, 94, w, h, r, b2 ? backPressed : back);
+  M5.Lcd.fillRoundRect(222, 94, w, h, r, b4 ? backPressed : back);
+  M5.Lcd.fillRoundRect(263, 94, w, h, r, b6 ? backPressed : back);
 }
 
 void setup() {
