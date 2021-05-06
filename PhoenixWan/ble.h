@@ -3,10 +3,7 @@
 
 #include <memory>
 
-#include <BLE2902.h>
-#include <BLEDevice.h>
-#include <BLEServer.h>
-#include <BLEUtils.h>
+#include <NimBLEDevice.h>
 
 namespace {
 const std::string ADVERTISING_NAME = "IIDX Entry model";

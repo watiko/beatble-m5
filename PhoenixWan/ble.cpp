@@ -11,9 +11,8 @@ BeatbleBLEServer::BeatbleBLEServer() {
   this->server = BLEDevice::createServer();
   this->service = server->createService(SERVICE_UUID);
 
-  this->characteristic = service->createCharacteristic(
-      CHARACTERISTIC_UUID, BLECharacteristic::PROPERTY_NOTIFY);
-  this->characteristic->addDescriptor(new BLE2902());
+  this->characteristic = service->createCharacteristic(CHARACTERISTIC_UUID,
+                                                       NIMBLE_PROPERTY::NOTIFY);
 
   this->service->start();
 
