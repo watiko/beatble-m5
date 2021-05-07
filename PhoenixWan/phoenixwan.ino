@@ -121,6 +121,8 @@ static uint8_t previousScratch = 0;
 static uint8_t previousButton = 0;
 static uint8_t previousOptionButton = 0;
 
+static bool isLEDOff = false;
+
 void updateDisplay() {
   // USB State
   M5.Lcd.setCursor(10, 10);
@@ -182,6 +184,35 @@ void updateDisplay() {
 static auto lastMillis = millis();
 static bool previousDeviceConnected = false;
 
+class DisplaySleeper {
+public:
+  void toggle() {
+    if (this->isSleep) {
+      this->wakeup();
+      return;
+    }
+
+    this->sleep();
+  }
+
+  void sleep() {
+    this->isSleep = true;
+    M5.Lcd.setBrightness(0);
+    M5.Lcd.sleep();
+  }
+
+  void wakeup() {
+    this->isSleep = false;
+    M5.Lcd.setBrightness(200);
+    M5.Lcd.wakeup();
+  }
+
+private:
+  bool isSleep = false;
+};
+
+DisplaySleeper displaySleeper;
+
 void loop() {
   M5.update();
   Usb.Task();
@@ -196,6 +227,11 @@ void loop() {
   if (M5.BtnA.pressedFor(20, 500)) {
     Serial.println("Left Button was pressed");
     togglePlaySide();
+  }
+
+  if (M5.BtnB.pressedFor(20, 500)) {
+    Serial.println("Middle Button was pressed");
+    displaySleeper.toggle();
   }
 
   if (BleServer->isConnected()) {
