@@ -23,28 +23,50 @@ const uint32_t text = TFT_RED;
 } // namespace color
 } // namespace
 
-void updateScratch() { M5.Lcd.fillCircle(80, 120, 70, color::scratch); }
+static bool isRight = true;
+static int32_t buttonBaseX = 160;
+static int32_t scratchBaseX = 80;
+void togglePlaySide() {
+  auto nextIsRight = !isRight;
+  isRight = nextIsRight;
+
+  if (nextIsRight) {
+    buttonBaseX = 160;
+    scratchBaseX = 80;
+  } else {
+    buttonBaseX = 10;
+    scratchBaseX = 240;
+  }
+}
+
+void clearPlayArea() { M5.Lcd.fillRect(0, 45, 320, 151, color::background); }
+
+void updateScratch() {
+  M5.Lcd.fillCircle(scratchBaseX, 120, 70, color::scratch);
+}
 
 void drawAngleLine(uint8_t angle) {
   double theta = (M_PI / 128) * angle;
   auto r = 70;
   auto dx = (int32_t)(r * std::cos(theta));
   auto dy = (int32_t)(-r * std::sin(theta));
+  auto bx = scratchBaseX;
 
-  M5.Lcd.drawLine(80, 120, 80 + dx, 120 + dy, color::scratchAngle);
+  M5.Lcd.drawLine(bx, 120, bx + dx, 120 + dy, color::scratchAngle);
 }
 
 void updateOptionButtons(bool e1, bool e2, bool e3, bool e4) {
   auto option = color::optionButton;
   auto pressed = color::optionButtonPressed;
 
+  auto bx = buttonBaseX;
   auto w = 29;
   auto r = 2;
 
-  M5.Lcd.fillRoundRect(160, 45, w, w, r, e1 ? pressed : option);
-  M5.Lcd.fillRoundRect(201, 45, w, w, r, e2 ? pressed : option);
-  M5.Lcd.fillRoundRect(242, 45, w, w, r, e3 ? pressed : option);
-  M5.Lcd.fillRoundRect(283, 45, w, w, r, e4 ? pressed : option);
+  M5.Lcd.fillRoundRect(bx + 0, 45, w, w, r, e1 ? pressed : option);
+  M5.Lcd.fillRoundRect(bx + 41, 45, w, w, r, e2 ? pressed : option);
+  M5.Lcd.fillRoundRect(bx + 82, 45, w, w, r, e3 ? pressed : option);
+  M5.Lcd.fillRoundRect(bx + 123, 45, w, w, r, e4 ? pressed : option);
 }
 
 void updateButtons(bool b1, bool b2, bool b3, bool b4, bool b5, bool b6,
@@ -54,17 +76,18 @@ void updateButtons(bool b1, bool b2, bool b3, bool b4, bool b5, bool b6,
   auto back = color::backButton;
   auto backPressed = color::backButtonPressed;
 
+  auto bx = buttonBaseX;
   auto w = 29;
   auto h = 46;
   auto r = 2;
 
-  M5.Lcd.fillRoundRect(160, 150, w, h, r, b1 ? frontPressed : front);
-  M5.Lcd.fillRoundRect(201, 150, w, h, r, b3 ? frontPressed : front);
-  M5.Lcd.fillRoundRect(242, 150, w, h, r, b5 ? frontPressed : front);
-  M5.Lcd.fillRoundRect(283, 150, w, h, r, b7 ? frontPressed : front);
-  M5.Lcd.fillRoundRect(181, 94, w, h, r, b2 ? backPressed : back);
-  M5.Lcd.fillRoundRect(222, 94, w, h, r, b4 ? backPressed : back);
-  M5.Lcd.fillRoundRect(263, 94, w, h, r, b6 ? backPressed : back);
+  M5.Lcd.fillRoundRect(bx, 150, w, h, r, b1 ? frontPressed : front);
+  M5.Lcd.fillRoundRect(bx + 41, 150, w, h, r, b3 ? frontPressed : front);
+  M5.Lcd.fillRoundRect(bx + 82, 150, w, h, r, b5 ? frontPressed : front);
+  M5.Lcd.fillRoundRect(bx + 123, 150, w, h, r, b7 ? frontPressed : front);
+  M5.Lcd.fillRoundRect(bx + 21, 94, w, h, r, b2 ? backPressed : back);
+  M5.Lcd.fillRoundRect(bx + 62, 94, w, h, r, b4 ? backPressed : back);
+  M5.Lcd.fillRoundRect(bx + 103, 94, w, h, r, b6 ? backPressed : back);
 }
 
 void setup() {
@@ -93,6 +116,7 @@ void setup() {
   Serial.println("start advertising");
 }
 
+static bool previousIsRight = isRight;
 static uint8_t previousScratch = 0;
 static uint8_t previousButton = 0;
 static uint8_t previousOptionButton = 0;
@@ -118,14 +142,24 @@ void updateDisplay() {
   }
   M5.Lcd.print("BLE Connected");
 
+  bool playSideChanged = false;
+  // play side changed
+  if (previousIsRight != isRight) {
+    previousIsRight = isRight;
+    playSideChanged = true;
+
+    clearPlayArea();
+  }
+
   // scratch
-  if (previousScratch != PhoenixWan.getScratch()) {
+  if (previousScratch != PhoenixWan.getScratch() || playSideChanged) {
     previousScratch = PhoenixWan.getScratch();
     updateScratch();
     drawAngleLine(PhoenixWan.getScratch());
   }
 
-  if (previousOptionButton != PhoenixWan.getOptionButtonValue()) {
+  if (previousOptionButton != PhoenixWan.getOptionButtonValue() ||
+      playSideChanged) {
     previousOptionButton = PhoenixWan.getOptionButtonValue();
     updateOptionButtons(PhoenixWan.getButtonPress(PButton::E_1),
                         PhoenixWan.getButtonPress(PButton::E_2),
@@ -133,7 +167,7 @@ void updateDisplay() {
                         PhoenixWan.getButtonPress(PButton::E_4));
   }
 
-  if (previousButton != PhoenixWan.getButtonValue()) {
+  if (previousButton != PhoenixWan.getButtonValue() || playSideChanged) {
     previousButton = PhoenixWan.getButtonValue();
     updateButtons(PhoenixWan.getButtonPress(PButton::B_1),
                   PhoenixWan.getButtonPress(PButton::B_2),
@@ -149,6 +183,7 @@ static auto lastMillis = millis();
 static bool previousDeviceConnected = false;
 
 void loop() {
+  M5.update();
   Usb.Task();
 
   auto currentMillis = millis();
@@ -156,6 +191,11 @@ void loop() {
   if (currentMillis - lastMillis >= 1000 / 60) {
     lastMillis = currentMillis;
     updateDisplay();
+  }
+
+  if (M5.BtnA.pressedFor(20, 500)) {
+    Serial.println("Left Button was pressed");
+    togglePlaySide();
   }
 
   if (BleServer->isConnected()) {
