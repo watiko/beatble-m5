@@ -121,8 +121,6 @@ static uint8_t previousScratch = 0;
 static uint8_t previousButton = 0;
 static uint8_t previousOptionButton = 0;
 
-static bool isLEDOff = false;
-
 void updateDisplay() {
   // USB State
   M5.Lcd.setCursor(10, 10);
